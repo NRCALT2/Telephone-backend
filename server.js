@@ -34,6 +34,9 @@ app.get('/api/posts', async (req, res) => {
   }
 });
 
+app.get('/', (req, res) => {
+  res.send('API Téléphone Backend est en ligne');
+});
 
 
 app.post('/api/posts', async (req, res) => {

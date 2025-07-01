@@ -25,11 +25,14 @@ const Post = mongoose.model('Post', PostSchema);
 app.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find().sort({ datePublication: -1 });
+    console.log('Posts envoyés au front:', posts);
     res.json(posts);
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur lors du chargement des posts' });
   }
 });
+
 
 app.post('/api/posts', async (req, res) => {
   try {

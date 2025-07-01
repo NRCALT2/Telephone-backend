@@ -24,14 +24,16 @@ const Post = mongoose.model('Post', PostSchema);
 
 app.get('/api/posts', async (req, res) => {
   try {
+    console.log("Route GET /api/posts appelée");  // <-- log ajouté
     const posts = await Post.find().sort({ datePublication: -1 });
-    console.log('Posts envoyés au front:', posts);
+    console.log("Posts récupérés :", posts);       // <-- log ajouté
     res.json(posts);
   } catch (err) {
-    console.error(err);
+    console.error("Erreur lors du chargement des posts :", err);
     res.status(500).json({ error: 'Erreur serveur lors du chargement des posts' });
   }
 });
+
 
 
 app.post('/api/posts', async (req, res) => {

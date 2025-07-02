@@ -4,8 +4,12 @@ const cors = require('cors');
 mongoose.set('strictQuery', false);
 require('dotenv').config();
 
-const app = express();
-app.use(cors());
+const app = express()
+
+app.use(cors({
+  origin: '*', // autorise tout A ⚠️⚠️ CHANGER PLUS TARD ⚠️⚠️
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

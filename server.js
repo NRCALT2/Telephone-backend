@@ -4,13 +4,16 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({ origin: '*' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+mongoose.set('strictQuery', false);
+
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB connecté"))
-  .catch(err => console.error("❌ Erreur MongoDB :", err));
+  .then(() => console.log('✅ MongoDB connecté'))
+  .catch(err => console.error('❌ Erreur MongoDB :', err));
 
 const PostSchema = new mongoose.Schema({
   numero: String,
@@ -26,15 +29,18 @@ const PostSchema = new mongoose.Schema({
 
 const Post = mongoose.model('Post', PostSchema);
 
+// GET all posts
 app.get('/api/posts', async (req, res) => {
   try {
     const posts = await Post.find().sort({ datePublication: -1 });
     res.json(posts);
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur lors du chargement des posts' });
   }
 });
 
+// POST new post
 app.post('/api/posts', async (req, res) => {
   try {
     const { numero, emission, gain, prix, mot, nbMessage, dateExpiration, commentaire } = req.body;
@@ -44,7 +50,7 @@ app.post('/api/posts', async (req, res) => {
       gain,
       prix,
       mot,
-      nbMessage,
+      nbMessage: nbMessage ? Number(nbMessage) : 1,
       dateExpiration: new Date(dateExpiration),
       commentaire,
     });
@@ -52,34 +58,39 @@ app.post('/api/posts', async (req, res) => {
     res.status(201).json(post);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.status(500).json({ error: 'Erreur serveur lors de la création du post' });
   }
 });
 
-app.post('/admin/edit/:id', async (req, res) => {
+// PUT update post by id
+app.put('/api/posts/:id', async (req, res) => {
   try {
-    const { numero, emission, gain, prix, mot, dateExpiration, commentaire } = req.body;
+    const { numero, emission, gain, prix, mot, nbMessage, dateExpiration, commentaire } = req.body;
     await Post.findByIdAndUpdate(req.params.id, {
       numero,
       emission,
       gain,
       prix,
       mot,
+      nbMessage: nbMessage ? Number(nbMessage) : 1,
       dateExpiration: new Date(dateExpiration),
       commentaire,
     });
-    res.status(200).json({ message: 'Modifié' });
-  } catch {
-    res.status(500).json({ error: 'Erreur modification' });
+    res.status(200).json({ message: 'Post modifié' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur lors de la modification du post' });
   }
 });
 
-app.delete('/admin/delete/:id', async (req, res) => {
+// DELETE post by id
+app.delete('/api/posts/:id', async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: 'Supprimé' });
-  } catch {
-    res.status(500).json({ error: 'Erreur suppression' });
+    res.status(200).json({ message: 'Post supprimé' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Erreur serveur lors de la suppression du post' });
   }
 });
 

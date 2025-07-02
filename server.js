@@ -1,19 +1,19 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-mongoose.set('strictQuery', false);
 require('dotenv').config();
 
-const app = express()
+mongoose.set('strictQuery', false);
 
-app.use(cors({
-  origin: '*', // autorise tout A ⚠️⚠️ CHANGER PLUS TARD ⚠️⚠️
-}));
+const app = express();
 
+app.use(cors({ origin: "*" }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-mongoose.connect(process.env.MONGODB_URI);
+mongoose.connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB connecté"))
+  .catch(err => console.error("❌ Erreur MongoDB :", err));
 
 const PostSchema = new mongoose.Schema({
   numero: String,
@@ -28,20 +28,13 @@ const Post = mongoose.model('Post', PostSchema);
 
 app.get('/api/posts', async (req, res) => {
   try {
-    console.log("Route GET /api/posts appelée");  // <-- log ajouté
     const posts = await Post.find().sort({ datePublication: -1 });
-    console.log("Posts récupérés :", posts);       // <-- log ajouté
     res.json(posts);
   } catch (err) {
-    console.error("Erreur lors du chargement des posts :", err);
+    console.error(err);
     res.status(500).json({ error: 'Erreur serveur lors du chargement des posts' });
   }
 });
-
-app.get('/', (req, res) => {
-  res.send('API Téléphone Backend est en ligne');
-});
-
 
 app.post('/api/posts', async (req, res) => {
   try {
@@ -60,7 +53,7 @@ app.post('/api/posts', async (req, res) => {
   }
 });
 
-app.post('/admin/edit/:id', async (req, res) => {
+app.put('/api/posts/:id', async (req, res) => {
   try {
     const { numero, emission, gain, dateExpiration, commentaire } = req.body;
     await Post.findByIdAndUpdate(req.params.id, {
@@ -76,7 +69,7 @@ app.post('/admin/edit/:id', async (req, res) => {
   }
 });
 
-app.delete('/admin/delete/:id', async (req, res) => {
+app.delete('/api/posts/:id', async (req, res) => {
   try {
     await Post.findByIdAndDelete(req.params.id);
     res.status(200).json({ message: 'Supprimé' });
